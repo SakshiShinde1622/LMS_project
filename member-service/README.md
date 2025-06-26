@@ -1,5 +1,17 @@
 #  Member Service
 
+## 📚 Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Folder Structure](#folder-structure)
+- [REST API Endpoints](#rest-api-endpoints)
+- [Data Model](#data-model)
+- [Module Architecture Diagram](#module-architecture-diagram)
+- [Component Diagram](#component-diagram)
+- [Sequence Diagram](#sequence-diagram)
+- [Run Locally](#run-locally)
+
+## Overview
 - The Member Management Service is a standalone Spring Boot microservice responsible for handling member registration, profile updates, and managing the membership lifecycle in a Library Management System. It is designed for modularity, scalability, and integration within a microservices ecosystem via Eureka Discovery and Spring Cloud Gateway.
 ---
 ##  Features
@@ -9,17 +21,6 @@
 - Retrieve member by ID or email
 - Update member details and status
 - Delete or deactivate accounts
-
----
-
-## Tech Stack
-
-- Java 
-- Spring Boot 
-- Spring Data JPA
-- MySQL
-- Springdoc OpenAPI (Swagger)
-- Eureka Discovery Client
 
 ---
 ## Folder Structure
@@ -147,7 +148,7 @@ flowchart LR
   class D1,D2 model
 ```
 
-## Sequence  Diagram
+## Sequence Diagram
 ```mermaid
 sequenceDiagram
   actor UI as React Frontend
@@ -169,26 +170,12 @@ sequenceDiagram
   %% Controller/Service/Repo: #d5e8d4 (light green)
   %% DB:       #f3e5f5 (lavender)
 ```
+---
 
-##  API Endpoints
-
-| Method | URL                               | Description              |
-|--------|------------------------------------|--------------------------|
-| GET    | `/api/members`                    | Get all members          |
-| GET    | `/api/members/{id}`               | Get member by ID         |
-| GET    | `/api/members/email/{email}`      | Get member by email      |
-| GET    | `/api/members/status/{status}`    | Get members by status    |
-| GET    | `/api/members/search?name=xyz`    | Search by name           |
-| POST   | `/api/members`                    | Create new member        |
-| PUT    | `/api/members/{id}`               | Update member info       |
-| PUT    | `/api/members/{id}/status`        | Update membership status |
-| DELETE | `/api/members/{id}`               | Delete member            |
-
-
-Swagger Url : http://localhost:8081/swagger-ui/index.html#/
+- Swagger Url : http://localhost:8081/swagger-ui/index.html#/
+- Eureka Discovery : http://localhost:8761/
 
 ---
-Eureka Discovery : http://localhost:8761/
 ##  Run Locally
 
 ```bash
@@ -200,4 +187,3 @@ cd member-service
 # Build and run
 mvn clean install
 mvn spring-boot:run
-
