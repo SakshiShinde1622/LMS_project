@@ -1,5 +1,24 @@
 # Library Management System (LMS)
 
+## 📚 Table of Contents
+- [Overview](#overview)
+- [Features](#features)
+- [Tech Stack](#tech-stack)
+- [Architecture Diagram](#architecture-diagram)
+- [Module Overview](#module-overview)
+  - [Book Service](#book-service)
+  - [Member Service](#member-service)
+  - [Borrowing Service](#borrowing-service)
+  - [Fine Service](#fine-service)
+  - [Notification Service](#notification-service)
+  - [API Gateway](#api-gateway)
+  - [Discovery Server (Eureka)](#discovery-server-eureka)
+- [Setup Instructions](#setup-instructions)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Contributing](#contributing)
+- [License](#license)
+
 ## Overview
 The Library Management System (LMS) is a RESTful API-based backend application designed to manage book collections, member registrations, borrowing and returning of books, overdue tracking, and notifications. It is built using Spring Boot and supports relational databases like MySQL and PostgreSQL.
 
@@ -14,152 +33,114 @@ The Library Management System (LMS) is a RESTful API-based backend application d
 
 ---
 
-## Technologies Used
-- **Backend**: Spring Boot (Java)
-- **Database**: MySQL/PostgreSQL (H2 for development)
-- **ORM**: Hibernate/JPA
-- **Testing**: JUnit, Mockito
-- **API Documentation**: Swagger/OpenAPI
-- **Logging**: SLF4J with Logback
+## Tech Stack
+
+- Java 
+- Spring Boot 
+- Spring Data JPA
+- MySQL
+- Springdoc OpenAPI (Swagger)
+- Eureka Discovery Client
 
 ---
+## Architecture Diagram
+```mermaid
+flowchart TD
+ 
+  subgraph Client [Client Applications]
+    A[Web App]
+    B[Mobile App]
+  end
+ 
+  subgraph Gateway [API Gateway]
+    C[API Gateway]
+  end
+ 
+  subgraph Infra [Infrastructure Services]
+    D[Load Balancer]
+    E[Discovery Service]
+    F[Config Service]
+  end
+ 
+  subgraph Services [Microservices]
+    G[User Service] --> GDB[(User DB)]
+    H[Book Service] --> HDB[(Book DB)]
+    I[Loan Service] --> IDB[(Loan DB)]
+    J[Notification Service] --> JDB[(Notification DB)]
+    J --> Queue[(Message Queue)]
+    K[Catalog Service] --> KDB[(Catalog DB)]
+    L[Recommendation Service] --> LDB[(Recommendation DB)]
+  end
+ 
+  subgraph External [External Services]
+    M[Remote Web Service]
+  end
+ 
+  %% Connections
+  A --> C
+  B --> C
+  C --> D
+  D --> E
+  D --> F
+  C --> G
+  C --> H
+  C --> I
+  C --> J
+  C --> K
+  C --> L
+  L --> M
+ 
+  %% Styling
+  classDef client fill:#e3f2fd,stroke:#2196f3,color:#0d47a1
+  classDef gateway fill:#fff3e0,stroke:#ff9800,color:#e65100
+  classDef infra fill:#ede7f6,stroke:#673ab7,color:#311b92
+  classDef service fill:#e8f5e9,stroke:#4caf50,color:#1b5e20
+  classDef external fill:#fce4ec,stroke:#f06292,color:#880e4f
+  classDef db fill:#f3e5f5,stroke:#ab47bc,color:#4a148c
+  classDef queue fill:#fffde7,stroke:#fbc02d,color:#f57f17
+ 
+  class A,B client
+  class C gateway
+  class D,E,F infra
+  class G,H,I,J,K,L service
+  class M external
+  class GDB,HDB,IDB,JDB,KDB,LDB db
+  class Queue queue
+```
+---
+##  Module Overview
 
-## REST API Endpoints
+The Library Management System is built using a microservices architecture. Each module handles a specific business capability and communicates via REST APIs. Below is a quick summary:
 
-### Book Management
-- `GET /api/books`: Fetch all books.
-- `GET /api/books/{id}`: Fetch a book by ID.
-- `POST /api/books`: Add a new book.
-- `PUT /api/books/{id}`: Update book details.
-- `DELETE /api/books/{id}`: Delete a book.
-- `GET /api/books/search?title={title}&author={author}`: Search books by title and/or author.
+### Book Service
+Handles the library's book catalog. Responsible for adding, updating, searching, and listing books, along with managing availability status (e.g., available, issued, reserved).
+- [Book Service](./book-service/README.md)
 
-### Member Management
-- `GET /api/members`: Fetch all members.
-- `GET /api/members/{id}`: Fetch a member by ID.
-- `POST /api/members`: Add a new member.
-- `PUT /api/members/{id}`: Update member details.
-- `DELETE /api/members/{id}`: Delete a member.
+### Member Service
+Manages all library members: registration, updates, lookups, and status changes. Exposes endpoints to search and retrieve member details and supports member lifecycle management.
+- [Member Service](./member-service/README.md)
 
-### Borrowing Transactions
-- `GET /api/transactions`: Fetch all transactions.
-- `GET /api/transactions/{id}`: Fetch a transaction by ID.
-- `POST /api/transactions`: Borrow a book.
-- `PUT /api/transactions/return/{id}`: Return a borrowed book.
+### Borrowing Service
+Manages the issuance and return of books by members. Ensures book availability, tracks due dates, and maintains borrowing history. Coordinates with both Member and Book services.
+- [Borrowing Service](./borrowing-service/README.md)
+###  Fine Service
+Calculates and manages overdue fines for borrowed books. It tracks return deadlines, applies configurable penalty rules, and exposes endpoints for querying outstanding dues. Integrates with the Borrowing Service to detect overdue returns and can trigger notifications via the Notification Service.
+- [Fine Service](./fine-service/README.md)
 
-### Fines
-- `GET /api/fines`: Fetch all fines.
-- `GET /api/fines/{id}`: Fetch a fine by ID.
-- `POST /api/fines`: Create a new fine.
-- `POST /api/fines/pay/{id}`: Pay a fine.
-- `GET /api/fines/member/{memberId}`: Fetch fines for a specific member.
+###  Notification Service
+Sends alerts and reminders to users. Used to notify members about upcoming due dates, overdue returns, registration confirmations, and system messages (via email, SMS, etc.).
+- [ Notification Service](./notification-service/README.md)
+  
+### API Gateway
+Provides a unified entry point to route incoming client requests to appropriate microservices. Also handles load balancing, logging, and cross-cutting concerns.
+Access the API documentation at `http://localhost:8080/swagger-ui.html`.
 
-### Notifications
-- `GET /api/notifications`: Fetch all notifications.
-- `GET /api/notifications/{id}`: Fetch a notification by ID.
-- `POST /api/notifications`: Send a notification.
+###  Discovery Server (Eureka)
+Acts as a service registry where all microservices register themselves. Enables dynamic service discovery and communication within the ecosystem.
+
+Eureka Discovery : http://localhost:8761/
 
 ---
-
-## Entity Properties
-
-### Book
-- `bookId` (Long): Unique identifier.
-- `title` (String): Title of the book.
-- `author` (String): Author of the book.
-- `genre` (String): Genre of the book.
-- `isbn` (String): ISBN number.
-- `yearPublished` (int): Year of publication.
-- `availableCopies` (int): Number of available copies.
-
-### Member
-- `memberId` (Long): Unique identifier.
-- `name` (String): Name of the member.
-- `email` (String): Email address.
-- `phone` (String): Phone number.
-- `address` (String): Address of the member.
-- `membershipStatus` (Enum): Membership status (`ACTIVE`, `INACTIVE`).
-
-### BorrowingTransaction
-- `transactionId` (Long): Unique identifier.
-- `book` (Book): Associated book.
-- `member` (Member): Associated member.
-- `borrowDate` (LocalDate): Date of borrowing.
-- `returnDate` (LocalDate): Date of return.
-- `status` (Enum): Transaction status (`BORROWED`, `RETURNED`).
-
-### Fine
-- `fineId` (Long): Unique identifier.
-- `member` (Member): Associated member.
-- `amount` (double): Fine amount.
-- `status` (Enum): Fine status (`PAID`, `PENDING`).
-- `transactionDate` (LocalDate): Date of fine creation.
-
-### Notification
-- `notificationId` (Long): Unique identifier.
-- `member` (Member): Associated member.
-- `message` (String): Notification message.
-- `dateSent` (LocalDate): Date the notification was sent.
-
----
-
-## Database Schema
-
-### `books` Table
-| Column            | Type        | Constraints          |
-|--------------------|-------------|----------------------|
-| `book_id`         | BIGINT      | Primary Key          |
-| `title`           | VARCHAR(255)| Not Null             |
-| `author`          | VARCHAR(255)| Not Null             |
-| `genre`           | VARCHAR(255)|                      |
-| `isbn`            | VARCHAR(255)| Unique               |
-| `year_published`  | INT         |                      |
-| `available_copies`| INT         |                      |
-
-### `members` Table
-| Column              | Type        | Constraints          |
-|----------------------|-------------|----------------------|
-| `member_id`         | BIGINT      | Primary Key          |
-| `name`              | VARCHAR(255)| Not Null             |
-| `email`             | VARCHAR(255)| Unique               |
-| `phone`             | VARCHAR(255)|                      |
-| `address`           | VARCHAR(255)|                      |
-| `membership_status` | VARCHAR(255)| Enum (`ACTIVE`, `INACTIVE`) |
-
-### `borrowing_transactions` Table
-| Column            | Type        | Constraints          |
-|--------------------|-------------|----------------------|
-| `transaction_id`  | BIGINT      | Primary Key          |
-| `book_id`         | BIGINT      | Foreign Key (`books`)|
-| `member_id`       | BIGINT      | Foreign Key (`members`)|
-| `borrow_date`     | DATE        |                      |
-| `return_date`     | DATE        |                      |
-| `status`          | VARCHAR(255)| Enum (`BORROWED`, `RETURNED`) |
-
-### `fines` Table
-| Column            | Type        | Constraints          |
-|--------------------|-------------|----------------------|
-| `fine_id`         | BIGINT      | Primary Key          |
-| `member_id`       | BIGINT      | Foreign Key (`members`)|
-| `amount`          | DOUBLE      |                      |
-| `status`          | VARCHAR(255)| Enum (`PAID`, `PENDING`) |
-| `transaction_date`| DATE        |                      |
-
-### `notifications` Table
-| Column            | Type        | Constraints          |
-|--------------------|-------------|----------------------|
-| `notification_id` | BIGINT      | Primary Key          |
-| `member_id`       | BIGINT      | Foreign Key (`members`)|
-| `message`         | VARCHAR(255)|                      |
-| `date_sent`       | DATE        |                      |
-
----
-
-## Prerequisites
-- Java 17 or higher
-- Maven 3.8+
-- MySQL/PostgreSQL database
-
 ## Setup Instructions
 1. Clone the repository:
    ```bash
@@ -184,12 +165,7 @@ Run the tests using Maven:
 ```bash
 mvn test
 ```
-
-## Advanced Features
-- **API Endpoints**: Comprehensive RESTful APIs for managing books, members, transactions, fines, and notifications.
-- **Security**: Configured with Spring Security for authentication and authorization.
-- **Logging**: Centralized logging using SLF4J and Logback, with separate logs for development and production environments.
-- **Database Schema**: Automatically managed by Hibernate, with support for schema updates.
+---
 
 ## Deployment
 1. **Build the Application**:
